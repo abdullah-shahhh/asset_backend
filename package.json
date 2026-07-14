@@ -1,0 +1,57 @@
+{
+  "name": "uamp-backend",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "migrate:main": "sequelize-cli db:migrate",
+    "migrate:main:undo": "sequelize-cli db:migrate:undo",
+    "migrate:main:undo:all": "sequelize-cli db:migrate:undo:all",
+    "migrate:main:make": "sequelize-cli migration:generate --name",
+    "migrate:tenants": "node scripts/migrate-tenants.js",
+    "provision:org": "node scripts/provision-org.js",
+    "seed:main": "node scripts/seed-main.js",
+    "seed:demo-org": "node scripts/seed-demo-org.js",
+    "setup": "npm run migrate:main && npm run seed:main && npm run seed:demo-org"
+  },
+  "keywords": [
+    "express",
+    "sequelize",
+    "postgres",
+    "postgis",
+    "multi-tenant",
+    "urban-asset-management"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "Multi-tenant (database-per-organization) Node/Express + Sequelize backend for the Urban Asset Management Platform.",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dayjs": "^1.11.21",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "http-status-codes": "^2.3.0",
+    "joi": "^18.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
+    "pg": "^8.21.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.8",
+    "umzug": "^3.8.3",
+    "uuid": "^11.1.1",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "nodemon": "^3.1.14",
+    "sequelize-cli": "^6.6.5"
+  }
+}

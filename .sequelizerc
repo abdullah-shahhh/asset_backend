@@ -1,0 +1,11 @@
+const path = require('path');
+
+// sequelize-cli paths. These target the MAIN database.
+// Tenant migrations live in src/database/migrations/tenant and are executed
+// by the Umzug-based runner (npm run migrate:tenants).
+module.exports = {
+  config: path.resolve('src', 'config', 'sequelize.config.js'),
+  'models-path': path.resolve('src', 'models', 'main'),
+  'migrations-path': path.resolve('src', 'database', 'migrations', 'main'),
+  'seeders-path': path.resolve('src', 'database', 'seeders', 'main'),
+};
