@@ -5,21 +5,22 @@ const { NETWORK_ASSET_STATUS, GEOMETRY_TYPE } = require('../../config/constants'
 
 const point = Joi.array().items(Joi.number()).length(2);
 const lineString = Joi.array().items(point).min(2);
+const linearRing = Joi.array().items(point).min(4); // closed ring: first point === last point
+const polygon = Joi.array().items(linearRing).min(1);
 
 const geometry = Joi.object({
-  type: Joi.string().valid(GEOMETRY_TYPE.POINT, GEOMETRY_TYPE.LINE).required(),
-  coordinates: Joi.alternatives().conditional('type', {
-    is: GEOMETRY_TYPE.POINT,
-    then: point.required(),
-    otherwise: lineString.required(),
-  }),
+  type: Joi.string().valid(...Object.values(GEOMETRY_TYPE)).required(),
+  coordinates: Joi.alternatives().conditional('type', [
+    { is: GEOMETRY_TYPE.POINT, then: point.required() },
+    { is: GEOMETRY_TYPE.POLYGON, then: polygon.required() },
+    { is: GEOMETRY_TYPE.LINE, then: lineString.required() },
+  ]),
 });
 
 const create = {
   body: Joi.object({
     projectId: Joi.string().uuid().required(),
-    moduleId: Joi.string().uuid().required(),
-    assetType: Joi.string().required(),
+    symbologyId: Joi.string().uuid().required(),
     geometry: geometry.required(),
     attributes: Joi.object().unknown(true).default({}),
   }),
@@ -41,7 +42,6 @@ const reject = {
 const importGeoJSON = {
   body: Joi.object({
     projectId: Joi.string().uuid().required(),
-    moduleId: Joi.string().uuid().required(),
     featureCollection: Joi.object({
       type: Joi.string().valid('FeatureCollection').required(),
       features: Joi.array()
@@ -69,7 +69,7 @@ const listQuery = {
     sortBy: Joi.string(),
     sortOrder: Joi.string().valid('ASC', 'DESC', 'asc', 'desc'),
     projectId: Joi.string().uuid(),
-    moduleId: Joi.string().uuid(),
+    symbologyId: Joi.string().uuid(),
     assetType: Joi.string(),
     status: Joi.string().valid(...Object.values(NETWORK_ASSET_STATUS)),
   }),

@@ -43,6 +43,7 @@ const PROJECT_STATUS = Object.freeze({
 const GEOMETRY_TYPE = Object.freeze({
   POINT: 'Point',
   LINE: 'LineString',
+  POLYGON: 'Polygon',
 });
 
 const NETWORK_ASSET_STATUS = Object.freeze({
@@ -122,6 +123,8 @@ const ORG_PERMISSIONS = Object.freeze({
   ASSETS_DELETE: 'assets.delete',
   ASSETS_APPROVE: 'assets.approve', // approve/reject submissions
   TEMPLATES_VIEW: 'templates.view',
+  SYMBOLOGIES_VIEW: 'symbologies.view',
+  SYMBOLOGIES_MANAGE: 'symbologies.manage', // create/edit/delete symbologies, assign to projects
   MEDIA_UPLOAD: 'media.upload',
   EXPORT_VIEW: 'export.view',
   USERS_VIEW: 'users.view',
@@ -155,6 +158,7 @@ const SURVEYOR_PERMISSION_KEYS = Object.freeze([
   ORG_PERMISSIONS.ASSETS_VIEW,
   ORG_PERMISSIONS.ASSETS_CREATE,
   ORG_PERMISSIONS.TEMPLATES_VIEW,
+  ORG_PERMISSIONS.SYMBOLOGIES_VIEW,
   ORG_PERMISSIONS.MEDIA_UPLOAD,
 ]);
 

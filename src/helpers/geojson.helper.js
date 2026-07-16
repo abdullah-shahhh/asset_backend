@@ -10,7 +10,7 @@
 /** Turn a NetworkAsset instance (or plain object) into a GeoJSON Feature. */
 function assetToFeature(asset) {
   const a = typeof asset.toJSON === 'function' ? asset.toJSON() : asset;
-  const { geom, id, projectId, moduleId, assetType, geometryType, attributes, status, createdByUserId, reviewedByUserId, reviewedAt, createdAt, updatedAt } = a;
+  const { geom, id, projectId, symbologyId, symbology, assetType, geometryType, attributes, status, createdByUserId, reviewedByUserId, reviewedAt, createdAt, updatedAt } = a;
   return {
     type: 'Feature',
     id,
@@ -18,7 +18,12 @@ function assetToFeature(asset) {
     properties: {
       id,
       projectId,
-      moduleId,
+      symbologyId,
+      symbology: symbology ? { id: symbology.id, name: symbology.name, key: symbology.key, color: symbology.color } : null,
+      // Denormalized for map styling — flat properties are safe to reference
+      // from MapLibre style expressions; a nested object is not (`['get',
+      // 'color', ['get', 'symbology']]` throws when symbology is null).
+      color: symbology?.color || null,
       assetType,
       geometryType,
       attributes: attributes || {},

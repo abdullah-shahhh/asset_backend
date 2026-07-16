@@ -26,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
 
   Project.associate = (models) => {
     Project.hasMany(models.NetworkAsset, { foreignKey: 'projectId', as: 'networkAssets' });
+    Project.belongsToMany(models.Symbology, { through: models.ProjectSymbology, foreignKey: 'projectId', otherKey: 'symbologyId', as: 'symbologies' });
   };
 
   return Project;

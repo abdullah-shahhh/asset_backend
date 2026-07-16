@@ -1,48 +1,37 @@
 'use strict';
 
-const { mainDb } = require('../../database');
 const { getPaginationParams, buildPaginationMeta } = require('../../helpers/pagination.helper');
 const { assetsToFeatureCollection, assetToFeature } = require('../../helpers/geojson.helper');
 const auditHelper = require('../../helpers/audit.helper');
 const { NETWORK_ASSET_STATUS, AUDIT_ACTIONS, AUTH_REALM } = require('../../config/constants');
-const surveyTemplateService = require('../admin/surveyTemplate.service');
 const ApiError = require('../../utils/ApiError');
 
-/** Look up the asset-type definition for a module + assetType from its active survey template. */
-async function resolveAssetTypeDef(moduleId, assetType) {
-  const template = await surveyTemplateService.getActiveForModule(moduleId);
-  const def = (template.schemaJson.assetTypes || []).find((t) => t.key === assetType);
-  if (!def) throw ApiError.badRequest(`Unknown asset type "${assetType}" for this module's survey template`);
-  return def;
-}
+const SYMBOLOGY_INCLUDE = { association: 'symbology' };
 
-/** Validate submitted attributes against the asset type's required fields. */
-function validateAttributes(def, attributes = {}) {
-  const missing = (def.fields || [])
-    .filter((f) => f.required)
-    .filter((f) => attributes[f.key] === undefined || attributes[f.key] === null || attributes[f.key] === '')
-    .map((f) => f.key);
-  if (missing.length) {
-    throw ApiError.badRequest(`Missing required field(s): ${missing.join(', ')}`, missing.map((f) => ({ field: f })));
-  }
-}
-
-/** Ensure the module is enabled for the organization (doc §3.3). */
-async function assertModuleEnabled(organizationId, moduleId) {
-  const link = await mainDb.OrganizationModule.findOne({ where: { organizationId, moduleId } });
-  if (!link) throw ApiError.forbidden('This module is not enabled for your organization');
+/**
+ * Resolve a symbology and confirm it has been assigned to the given project —
+ * surveys may only draw with whatever symbologies their project was given
+ * (the "dynamic symbology" restriction).
+ */
+async function resolveProjectSymbology(models, projectId, symbologyId) {
+  const symbology = await models.Symbology.findByPk(symbologyId, {
+    include: [{ association: 'projects', where: { id: projectId }, attributes: ['id'], through: { attributes: [] } }],
+  });
+  if (!symbology) throw ApiError.badRequest('This symbology is not assigned to the selected project');
+  return symbology;
 }
 
 async function list(models, query) {
   const where = {};
   if (query.projectId) where.projectId = query.projectId;
   if (query.status) where.status = query.status;
-  if (query.moduleId) where.moduleId = query.moduleId;
+  if (query.symbologyId) where.symbologyId = query.symbologyId;
   if (query.assetType) where.assetType = query.assetType;
 
   const { page, limit, offset, order } = getPaginationParams(query);
   const { count, rows } = await models.NetworkAsset.findAndCountAll({
     where,
+    include: [SYMBOLOGY_INCLUDE],
     limit,
     offset,
     order,
@@ -54,26 +43,24 @@ async function list(models, query) {
 }
 
 async function getById(models, id) {
-  const asset = await models.NetworkAsset.findByPk(id, { include: [{ association: 'media' }] });
+  const asset = await models.NetworkAsset.findByPk(id, { include: [{ association: 'media' }, SYMBOLOGY_INCLUDE] });
   if (!asset) throw ApiError.notFound('Network asset not found');
   return asset;
 }
 
-async function create(models, organization, user, { projectId, moduleId, assetType, geometry, attributes }) {
+async function create(models, organization, user, { projectId, symbologyId, geometry, attributes }) {
   const project = await models.Project.findByPk(projectId);
   if (!project) throw ApiError.badRequest('Invalid project');
 
-  await assertModuleEnabled(organization.id, moduleId);
-  const def = await resolveAssetTypeDef(moduleId, assetType);
-  if (def.geometryType !== geometry.type) {
-    throw ApiError.badRequest(`Asset type "${assetType}" requires geometry type ${def.geometryType}, got ${geometry.type}`);
+  const symbology = await resolveProjectSymbology(models, projectId, symbologyId);
+  if (symbology.geometryType !== geometry.type) {
+    throw ApiError.badRequest(`Symbology "${symbology.name}" requires geometry type ${symbology.geometryType}, got ${geometry.type}`);
   }
-  validateAttributes(def, attributes);
 
   const asset = await models.NetworkAsset.create({
     projectId,
-    moduleId,
-    assetType,
+    symbologyId: symbology.id,
+    assetType: symbology.key,
     geometryType: geometry.type,
     geom: geometry,
     attributes: attributes || {},
@@ -87,14 +74,15 @@ async function create(models, organization, user, { projectId, moduleId, assetTy
 /**
  * Bulk-create assets from an uploaded GeoJSON FeatureCollection ("import"
  * survey data captured elsewhere). Each feature must carry `assetType` in its
- * properties; the remaining properties become `attributes`. Processed
- * independently per-feature so one bad row doesn't block the rest — returns a
- * summary the UI can show.
+ * properties, matching the KEY of a symbology assigned to the project; the
+ * remaining properties become `attributes`. Processed independently
+ * per-feature so one bad row doesn't block the rest.
  */
-async function importFeatureCollection(models, organization, user, { projectId, moduleId, featureCollection }) {
-  const project = await models.Project.findByPk(projectId);
+async function importFeatureCollection(models, organization, user, { projectId, featureCollection }) {
+  const project = await models.Project.findByPk(projectId, { include: [{ association: 'symbologies' }] });
   if (!project) throw ApiError.badRequest('Invalid project');
-  await assertModuleEnabled(organization.id, moduleId);
+
+  const symbologiesByKey = new Map(project.symbologies.map((s) => [s.key, s]));
 
   const features = featureCollection?.features || [];
   if (!features.length) throw ApiError.badRequest('No features found in the uploaded file');
@@ -110,18 +98,17 @@ async function importFeatureCollection(models, organization, user, { projectId, 
       const geometry = feature.geometry;
       if (!geometry) throw ApiError.badRequest('Feature has no geometry');
 
-      // eslint-disable-next-line no-await-in-loop
-      const def = await resolveAssetTypeDef(moduleId, assetType);
-      if (def.geometryType !== geometry.type) {
-        throw ApiError.badRequest(`Asset type "${assetType}" requires geometry type ${def.geometryType}, got ${geometry.type}`);
+      const symbology = symbologiesByKey.get(assetType);
+      if (!symbology) throw ApiError.badRequest(`"${assetType}" is not a symbology assigned to this project`);
+      if (symbology.geometryType !== geometry.type) {
+        throw ApiError.badRequest(`Symbology "${symbology.name}" requires geometry type ${symbology.geometryType}, got ${geometry.type}`);
       }
-      validateAttributes(def, attributes);
 
       // eslint-disable-next-line no-await-in-loop
       await models.NetworkAsset.create({
         projectId,
-        moduleId,
-        assetType,
+        symbologyId: symbology.id,
+        assetType: symbology.key,
         geometryType: geometry.type,
         geom: geometry,
         attributes,
@@ -141,18 +128,14 @@ async function update(models, id, { geometry, attributes }) {
   const asset = await getById(models, id);
   const patch = {};
   if (geometry) {
-    const def = await resolveAssetTypeDef(asset.moduleId, asset.assetType);
-    if (def.geometryType !== geometry.type) {
-      throw ApiError.badRequest(`Asset type "${asset.assetType}" requires geometry type ${def.geometryType}`);
+    if (asset.symbology && asset.symbology.geometryType !== geometry.type) {
+      throw ApiError.badRequest(`This asset's symbology requires geometry type ${asset.symbology.geometryType}`);
     }
     patch.geom = geometry;
     patch.geometryType = geometry.type;
   }
   if (attributes) {
-    const def = await resolveAssetTypeDef(asset.moduleId, asset.assetType);
-    const merged = { ...asset.attributes, ...attributes };
-    validateAttributes(def, merged);
-    patch.attributes = merged;
+    patch.attributes = { ...asset.attributes, ...attributes };
   }
   await asset.update(patch);
   return getById(models, id);

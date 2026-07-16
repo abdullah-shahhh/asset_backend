@@ -11,6 +11,7 @@ async function exportProjectGeoJSON(models, projectId) {
 
   const assets = await models.NetworkAsset.findAll({
     where: { projectId, status: NETWORK_ASSET_STATUS.APPROVED },
+    include: [{ association: 'symbology' }],
     order: [['createdAt', 'ASC']],
   });
   return assetsToFeatureCollection(assets);
