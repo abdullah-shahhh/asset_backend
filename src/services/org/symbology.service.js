@@ -35,16 +35,19 @@ async function getById(models, id) {
   return symbology;
 }
 
-async function create(models, { name, geometryType, color }) {
+async function create(models, { name, geometryType, color, icon }) {
   const key = await uniqueKey(models, slugify(name));
-  return models.Symbology.create({ name, key, geometryType, color });
+  return models.Symbology.create({ name, key, geometryType, color, icon: icon || null });
 }
 
-async function update(models, id, { name, color }) {
+async function update(models, id, { name, color, icon }) {
   const symbology = await getById(models, id);
   await symbology.update({
     ...(name != null && { name }),
     ...(color != null && { color }),
+    // Picking a curated icon replaces any custom-uploaded one — the two are
+    // mutually exclusive so rendering never has to guess which one "wins".
+    ...(icon !== undefined && { icon: icon || null, iconUrl: null }),
   });
   return symbology;
 }
@@ -53,6 +56,20 @@ async function remove(models, id) {
   const symbology = await getById(models, id);
   await symbology.destroy();
   return true;
+}
+
+/** Set a custom-uploaded icon image, replacing any curated icon selection. */
+async function setIcon(models, id, iconUrl) {
+  const symbology = await getById(models, id);
+  await symbology.update({ iconUrl, icon: null });
+  return symbology;
+}
+
+/** Remove a custom-uploaded icon, reverting to no icon (or a re-picked curated one). */
+async function removeIcon(models, id) {
+  const symbology = await getById(models, id);
+  await symbology.update({ iconUrl: null });
+  return symbology;
 }
 
 /** Symbologies assigned to a project (what the map's drawing tools may offer). */
@@ -78,4 +95,4 @@ async function setForProject(models, projectId, symbologyIds) {
   return listForProject(models, projectId);
 }
 
-module.exports = { list, getById, create, update, remove, listForProject, setForProject };
+module.exports = { list, getById, create, update, remove, setIcon, removeIcon, listForProject, setForProject };

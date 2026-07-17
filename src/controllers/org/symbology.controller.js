@@ -3,6 +3,8 @@
 const catchAsync = require('../../utils/catchAsync');
 const symbologyService = require('../../services/org/symbology.service');
 const response = require('../../helpers/response.helper');
+const { fileUrl } = require('../../middleware/upload.middleware');
+const ApiError = require('../../utils/ApiError');
 
 const list = catchAsync(async (req, res) => {
   const symbologies = await symbologyService.list(req.db);
@@ -29,6 +31,17 @@ const remove = catchAsync(async (req, res) => {
   return response.success(res, { message: 'Symbology deleted' });
 });
 
+const uploadIcon = catchAsync(async (req, res) => {
+  if (!req.file) throw ApiError.badRequest('No file uploaded');
+  const symbology = await symbologyService.setIcon(req.db, req.params.id, fileUrl(req.file));
+  return response.success(res, { message: 'Icon uploaded', data: symbology });
+});
+
+const removeIcon = catchAsync(async (req, res) => {
+  const symbology = await symbologyService.removeIcon(req.db, req.params.id);
+  return response.success(res, { message: 'Icon removed', data: symbology });
+});
+
 const listForProject = catchAsync(async (req, res) => {
   const symbologies = await symbologyService.listForProject(req.db, req.params.id);
   return response.success(res, { data: symbologies });
@@ -39,4 +52,4 @@ const setForProject = catchAsync(async (req, res) => {
   return response.success(res, { message: 'Project symbologies updated', data: symbologies });
 });
 
-module.exports = { list, get, create, update, remove, listForProject, setForProject };
+module.exports = { list, get, create, update, remove, uploadIcon, removeIcon, listForProject, setForProject };

@@ -5,6 +5,7 @@ const ctrl = require('../../../controllers/org/symbology.controller');
 const v = require('../../../validations/org/symbology.validation');
 const { validate } = require('../../../middleware/validate.middleware');
 const { requirePermission } = require('../../../middleware/permission.middleware');
+const { imageUploader } = require('../../../middleware/upload.middleware');
 const { ORG_PERMISSIONS } = require('../../../config/constants');
 
 const router = express.Router();
@@ -14,5 +15,7 @@ router.post('/', requirePermission(ORG_PERMISSIONS.SYMBOLOGIES_MANAGE), validate
 router.get('/:id', requirePermission(ORG_PERMISSIONS.SYMBOLOGIES_VIEW), validate(v.idParam), ctrl.get);
 router.patch('/:id', requirePermission(ORG_PERMISSIONS.SYMBOLOGIES_MANAGE), validate(v.update), ctrl.update);
 router.delete('/:id', requirePermission(ORG_PERMISSIONS.SYMBOLOGIES_MANAGE), validate(v.idParam), ctrl.remove);
+router.post('/:id/icon', requirePermission(ORG_PERMISSIONS.SYMBOLOGIES_MANAGE), imageUploader.single('file'), validate(v.idParam), ctrl.uploadIcon);
+router.delete('/:id/icon', requirePermission(ORG_PERMISSIONS.SYMBOLOGIES_MANAGE), validate(v.idParam), ctrl.removeIcon);
 
 module.exports = router;

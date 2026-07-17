@@ -20,6 +20,13 @@ module.exports = (sequelize, DataTypes) => {
         field: 'geometry_type',
       },
       color: { type: DataTypes.STRING, allowNull: false, defaultValue: '#2f4fb4' },
+      // Icon identifier from a fixed, curated set (see ICON_OPTIONS on the
+      // frontend) — only meaningful for Point symbologies, chosen freely by
+      // the organization managing the symbology.
+      icon: { type: DataTypes.STRING, allowNull: true },
+      // A custom-uploaded icon image takes precedence over `icon` when set;
+      // the two are kept mutually exclusive at the service layer.
+      iconUrl: { type: DataTypes.STRING, allowNull: true, field: 'icon_url' },
     },
     {
       tableName: 'symbologies',

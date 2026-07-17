@@ -19,11 +19,15 @@ function assetToFeature(asset) {
       id,
       projectId,
       symbologyId,
-      symbology: symbology ? { id: symbology.id, name: symbology.name, key: symbology.key, color: symbology.color } : null,
+      symbology: symbology
+        ? { id: symbology.id, name: symbology.name, key: symbology.key, color: symbology.color, icon: symbology.icon || null, iconUrl: symbology.iconUrl || null }
+        : null,
       // Denormalized for map styling — flat properties are safe to reference
       // from MapLibre style expressions; a nested object is not (`['get',
       // 'color', ['get', 'symbology']]` throws when symbology is null).
       color: symbology?.color || null,
+      icon: symbology?.icon || null,
+      iconUrl: symbology?.iconUrl || null,
       assetType,
       geometryType,
       attributes: attributes || {},
