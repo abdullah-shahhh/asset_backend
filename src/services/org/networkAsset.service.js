@@ -7,6 +7,9 @@ const { NETWORK_ASSET_STATUS, AUDIT_ACTIONS, AUTH_REALM } = require('../../confi
 const ApiError = require('../../utils/ApiError');
 
 const SYMBOLOGY_INCLUDE = { association: 'symbology' };
+const CREATED_BY_INCLUDE = { association: 'createdBy', attributes: ['id', 'firstName', 'lastName', 'email'] };
+const PROJECT_INCLUDE = { association: 'project', attributes: ['id', 'name'] };
+const REVIEW_INCLUDES = [SYMBOLOGY_INCLUDE, CREATED_BY_INCLUDE, PROJECT_INCLUDE];
 
 /**
  * Resolve a symbology and confirm it has been assigned to the given project —
@@ -31,7 +34,7 @@ async function list(models, query) {
   const { page, limit, offset, order } = getPaginationParams(query);
   const { count, rows } = await models.NetworkAsset.findAndCountAll({
     where,
-    include: [SYMBOLOGY_INCLUDE],
+    include: REVIEW_INCLUDES,
     limit,
     offset,
     order,
@@ -43,7 +46,7 @@ async function list(models, query) {
 }
 
 async function getById(models, id) {
-  const asset = await models.NetworkAsset.findByPk(id, { include: [{ association: 'media' }, SYMBOLOGY_INCLUDE] });
+  const asset = await models.NetworkAsset.findByPk(id, { include: [{ association: 'media' }, ...REVIEW_INCLUDES] });
   if (!asset) throw ApiError.notFound('Network asset not found');
   return asset;
 }
@@ -141,6 +144,12 @@ async function update(models, id, { geometry, attributes }) {
   return getById(models, id);
 }
 
+async function remove(models, id) {
+  const asset = await getById(models, id);
+  await asset.destroy();
+  return true;
+}
+
 async function approve(models, id, reviewer, { req } = {}) {
   const asset = await getById(models, id);
   await asset.update({
@@ -182,4 +191,4 @@ async function reject(models, id, reviewer, reason, { req } = {}) {
   return getById(models, id);
 }
 
-module.exports = { list, getById, create, update, approve, reject, importFeatureCollection, assetToFeature };
+module.exports = { list, getById, create, update, remove, approve, reject, importFeatureCollection, assetToFeature };

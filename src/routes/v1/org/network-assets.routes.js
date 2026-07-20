@@ -15,6 +15,7 @@ router.post('/', requirePermission(ORG_PERMISSIONS.ASSETS_CREATE), validate(v.cr
 router.post('/import', requirePermission(ORG_PERMISSIONS.ASSETS_CREATE), validate(v.importGeoJSON), ctrl.importGeoJSON);
 router.get('/:id', requirePermission(ORG_PERMISSIONS.ASSETS_VIEW), validate(v.idParam), ctrl.get);
 router.patch('/:id', requirePermission(ORG_PERMISSIONS.ASSETS_UPDATE), validate(v.update), ctrl.update);
+router.delete('/:id', requirePermission(ORG_PERMISSIONS.ASSETS_DELETE), validate(v.idParam), ctrl.remove);
 router.post('/:id/approve', requirePermission(ORG_PERMISSIONS.ASSETS_APPROVE), validate(v.idParam), ctrl.approve);
 router.post('/:id/reject', requirePermission(ORG_PERMISSIONS.ASSETS_APPROVE), validate(v.reject), ctrl.reject);
 

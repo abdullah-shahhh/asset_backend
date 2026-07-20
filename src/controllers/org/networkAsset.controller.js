@@ -34,6 +34,11 @@ const reject = catchAsync(async (req, res) => {
   return response.success(res, { message: 'Network asset rejected', data: assetService.assetToFeature(asset) });
 });
 
+const remove = catchAsync(async (req, res) => {
+  await assetService.remove(req.db, req.params.id);
+  return response.success(res, { message: 'Network asset deleted' });
+});
+
 const importGeoJSON = catchAsync(async (req, res) => {
   const summary = await assetService.importFeatureCollection(req.db, req.organization, req.user, req.body);
   return response.success(res, {
@@ -42,4 +47,4 @@ const importGeoJSON = catchAsync(async (req, res) => {
   });
 });
 
-module.exports = { list, get, create, update, approve, reject, importGeoJSON };
+module.exports = { list, get, create, update, remove, approve, reject, importGeoJSON };

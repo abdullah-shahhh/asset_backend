@@ -14,7 +14,8 @@
     "provision:org": "node scripts/provision-org.js",
     "seed:main": "node scripts/seed-main.js",
     "seed:demo-org": "node scripts/seed-demo-org.js",
-    "setup": "npm run migrate:main && npm run seed:main && npm run seed:demo-org"
+    "seed:ofc-demo": "node scripts/seed-ofc-demo.js",
+    "setup": "npm run migrate:main && npm run seed:main && npm run seed:demo-org && npm run migrate:tenants && npm run seed:ofc-demo"
   },
   "keywords": [
     "express",
