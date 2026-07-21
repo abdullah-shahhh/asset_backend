@@ -16,7 +16,7 @@
 const config = require('../src/config');
 const logger = require('../src/config/logger');
 const { mainDb, connectionManager } = require('../src/database');
-const { NETWORK_ASSET_STATUS } = require('../src/config/constants');
+const { NETWORK_ASSET_STATUS, SURVEYOR_PERMISSION_KEYS } = require('../src/config/constants');
 const fieldTeamService = require('../src/services/org/fieldTeam.service');
 const orgDirectory = require('../src/services/shared/org-directory.service');
 
@@ -56,6 +56,15 @@ const A = NETWORK_ASSET_STATUS.APPROVED;
 const P = NETWORK_ASSET_STATUS.PENDING;
 const R = NETWORK_ASSET_STATUS.REJECTED;
 
+// Mirrors OFC_PRESET_FIELDS in client-panel/src/pages/ProjectsPage.tsx.
+const OFC_TEMPLATE_FIELDS = [
+  { key: 'assetType', label: 'Asset Type', type: 'select', required: true, options: ['Cable', 'Joint', 'Manhole', 'Pole', 'Fault'] },
+  { key: 'cableType', label: 'Cable Type', type: 'select', options: ['Aerial', 'Underground', 'Drop'] },
+  { key: 'depth', label: 'Depth (ft)', type: 'number' },
+  { key: 'ownership', label: 'Ownership', type: 'text' },
+  { key: 'condition', label: 'Condition', type: 'select', options: ['Good', 'Fair', 'Poor', 'Damaged'] },
+];
+
 (async () => {
   try {
     await mainDb.sequelize.authenticate();
@@ -88,6 +97,14 @@ const R = NETWORK_ASSET_STATUS.REJECTED;
 
     // Re-runs shouldn't pile up duplicate field crew accounts.
     const surveyorRole = await models.Role.findOne({ where: { slug: 'surveyor' } });
+
+    // Orgs provisioned before SURVEYOR_PERMISSION_KEYS gained a new entry
+    // (e.g. symbologies.view) keep the stale permission set forever since
+    // nothing else re-syncs it — refresh it here so the demo crew can
+    // actually draw on the map.
+    const surveyorPermissions = await models.Permission.findAll({ where: { key: SURVEYOR_PERMISSION_KEYS } });
+    await surveyorRole.setPermissions(surveyorPermissions);
+
     const staleSurveyors = await models.User.findAll({ where: { roleId: surveyorRole.id } });
     for (const u of staleSurveyors) {
       // eslint-disable-next-line no-await-in-loop
@@ -122,16 +139,24 @@ const R = NETWORK_ASSET_STATUS.REJECTED;
       name: 'SoMa Fiber Backbone – Phase 2',
       description: 'Underground and aerial fiber backbone build-out through SoMa, connecting core distribution hubs to the metro ring.',
       status: 'active',
+      surveyType: 'OFC Survey',
+      templateFields: OFC_TEMPLATE_FIELDS,
+      photosRequired: true,
     });
     const ftth = await models.Project.create({
       name: 'Sunset District FTTH Buildout',
       description: 'Fiber-to-the-home last-mile construction along the Judah corridor.',
       status: 'active',
+      surveyType: 'OFC Survey',
+      templateFields: OFC_TEMPLATE_FIELDS,
+      photosRequired: false,
     });
     const allSymbologyIds = Object.values(sym).map((s) => s.id);
     await backbone.setSymbologies(allSymbologyIds);
     await ftth.setSymbologies(allSymbologyIds);
-    logger.info('📁 Created 2 projects and assigned the full symbology catalog to each.');
+    await backbone.setSurveyors([marcus.id]);
+    await ftth.setSurveyors([diego.id]);
+    logger.info('📁 Created 2 projects, assigned the full symbology catalog, and assigned surveyors to each.');
 
     // --- Network assets ---
     // `submittedBy` is always a field crew member — the admin only reviews

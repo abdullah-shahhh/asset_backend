@@ -21,4 +21,8 @@ router.delete('/:id', requirePermission(ORG_PERMISSIONS.PROJECTS_DELETE), valida
 router.get('/:id/symbologies', requirePermission(ORG_PERMISSIONS.SYMBOLOGIES_VIEW), validate(symbologyValidation.idParam), symbologyCtrl.listForProject);
 router.put('/:id/symbologies', requirePermission(ORG_PERMISSIONS.SYMBOLOGIES_MANAGE), validate(symbologyValidation.setForProject), symbologyCtrl.setForProject);
 
+// Which field surveyors may submit assets into this project.
+router.get('/:id/surveyors', requirePermission(ORG_PERMISSIONS.PROJECTS_VIEW), validate(v.idParam), ctrl.listSurveyors);
+router.put('/:id/surveyors', requirePermission(ORG_PERMISSIONS.PROJECTS_UPDATE), validate(v.setSurveyors), ctrl.setSurveyors);
+
 module.exports = router;

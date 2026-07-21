@@ -15,7 +15,7 @@ const get = catchAsync(async (req, res) => {
 });
 
 const create = catchAsync(async (req, res) => {
-  const asset = await assetService.create(req.db, req.organization, req.user, req.body);
+  const asset = await assetService.create(req.db, req.organization, req.user, req.body, req.isSuperAdmin);
   return response.created(res, { message: 'Network asset created', data: assetService.assetToFeature(asset) });
 });
 
@@ -40,7 +40,7 @@ const remove = catchAsync(async (req, res) => {
 });
 
 const importGeoJSON = catchAsync(async (req, res) => {
-  const summary = await assetService.importFeatureCollection(req.db, req.organization, req.user, req.body);
+  const summary = await assetService.importFeatureCollection(req.db, req.organization, req.user, req.body, req.isSuperAdmin);
   return response.success(res, {
     message: `Imported ${summary.created} of ${summary.total} feature(s)`,
     data: summary,

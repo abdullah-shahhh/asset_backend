@@ -65,6 +65,7 @@ module.exports = (sequelize, DataTypes) => {
     User.belongsTo(models.Role, { foreignKey: 'roleId', as: 'role' });
     User.hasMany(models.RefreshToken, { foreignKey: 'userId', as: 'refreshTokens' });
     User.hasMany(models.NetworkAsset, { foreignKey: 'createdByUserId', as: 'createdAssets' });
+    User.belongsToMany(models.Project, { through: models.ProjectSurveyor, foreignKey: 'userId', otherKey: 'projectId', as: 'assignedProjects' });
   };
 
   return User;

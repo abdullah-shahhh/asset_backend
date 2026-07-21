@@ -40,12 +40,6 @@ const PROJECT_STATUS = Object.freeze({
   ARCHIVED: 'archived',
 });
 
-const PROJECT_SURVEY_TYPE = Object.freeze({
-  OFC_SURVEY: 'ofc_survey',
-  ROAD_SURVEY: 'road_survey',
-  CUSTOM: 'custom',
-});
-
 const GEOMETRY_TYPE = Object.freeze({
   POINT: 'Point',
   LINE: 'LineString',

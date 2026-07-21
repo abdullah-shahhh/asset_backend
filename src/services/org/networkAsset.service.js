@@ -9,7 +9,8 @@ const ApiError = require('../../utils/ApiError');
 const SYMBOLOGY_INCLUDE = { association: 'symbology' };
 const CREATED_BY_INCLUDE = { association: 'createdBy', attributes: ['id', 'firstName', 'lastName', 'email'] };
 const PROJECT_INCLUDE = { association: 'project', attributes: ['id', 'name'] };
-const REVIEW_INCLUDES = [SYMBOLOGY_INCLUDE, CREATED_BY_INCLUDE, PROJECT_INCLUDE];
+const MEDIA_INCLUDE = { association: 'media' };
+const REVIEW_INCLUDES = [SYMBOLOGY_INCLUDE, CREATED_BY_INCLUDE, PROJECT_INCLUDE, MEDIA_INCLUDE];
 
 /**
  * Resolve a symbology and confirm it has been assigned to the given project —
@@ -22,6 +23,17 @@ async function resolveProjectSymbology(models, projectId, symbologyId) {
   });
   if (!symbology) throw ApiError.badRequest('This symbology is not assigned to the selected project');
   return symbology;
+}
+
+/**
+ * Only Org Admins (bypass-all role) may submit to any project regardless of
+ * assignment — everyone else (Surveyor-role field crew, or any other
+ * non-admin role) must be assigned to the project via ProjectSurveyor.
+ */
+async function assertProjectAssignment(models, projectId, user, isSuperAdmin) {
+  if (isSuperAdmin) return;
+  const assigned = await models.ProjectSurveyor.findOne({ where: { projectId, userId: user.id } });
+  if (!assigned) throw ApiError.forbidden('You are not assigned to this project');
 }
 
 async function list(models, query) {
@@ -46,14 +58,15 @@ async function list(models, query) {
 }
 
 async function getById(models, id) {
-  const asset = await models.NetworkAsset.findByPk(id, { include: [{ association: 'media' }, ...REVIEW_INCLUDES] });
+  const asset = await models.NetworkAsset.findByPk(id, { include: REVIEW_INCLUDES });
   if (!asset) throw ApiError.notFound('Network asset not found');
   return asset;
 }
 
-async function create(models, organization, user, { projectId, symbologyId, geometry, attributes }) {
+async function create(models, organization, user, { projectId, symbologyId, geometry, attributes }, isSuperAdmin) {
   const project = await models.Project.findByPk(projectId);
   if (!project) throw ApiError.badRequest('Invalid project');
+  await assertProjectAssignment(models, projectId, user, isSuperAdmin);
 
   const symbology = await resolveProjectSymbology(models, projectId, symbologyId);
   if (symbology.geometryType !== geometry.type) {
@@ -81,9 +94,10 @@ async function create(models, organization, user, { projectId, symbologyId, geom
  * remaining properties become `attributes`. Processed independently
  * per-feature so one bad row doesn't block the rest.
  */
-async function importFeatureCollection(models, organization, user, { projectId, featureCollection }) {
+async function importFeatureCollection(models, organization, user, { projectId, featureCollection }, isSuperAdmin) {
   const project = await models.Project.findByPk(projectId, { include: [{ association: 'symbologies' }] });
   if (!project) throw ApiError.badRequest('Invalid project');
+  await assertProjectAssignment(models, projectId, user, isSuperAdmin);
 
   const symbologiesByKey = new Map(project.symbologies.map((s) => [s.key, s]));
 

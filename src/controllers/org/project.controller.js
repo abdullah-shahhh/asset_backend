@@ -29,4 +29,14 @@ const remove = catchAsync(async (req, res) => {
   return response.success(res, { message: 'Project deleted' });
 });
 
-module.exports = { list, get, create, update, remove };
+const listSurveyors = catchAsync(async (req, res) => {
+  const surveyors = await projectService.listSurveyors(req.db, req.params.id);
+  return response.success(res, { data: surveyors });
+});
+
+const setSurveyors = catchAsync(async (req, res) => {
+  const surveyors = await projectService.setSurveyors(req.db, req.params.id, req.body.surveyorIds);
+  return response.success(res, { message: 'Project surveyors updated', data: surveyors });
+});
+
+module.exports = { list, get, create, update, remove, listSurveyors, setSurveyors };

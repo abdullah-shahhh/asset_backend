@@ -10,7 +10,7 @@
 /** Turn a NetworkAsset instance (or plain object) into a GeoJSON Feature. */
 function assetToFeature(asset) {
   const a = typeof asset.toJSON === 'function' ? asset.toJSON() : asset;
-  const { geom, id, projectId, project, symbologyId, symbology, assetType, geometryType, attributes, status, createdByUserId, createdBy, reviewedByUserId, reviewedAt, rejectionReason, createdAt, updatedAt } = a;
+  const { geom, id, projectId, project, symbologyId, symbology, assetType, geometryType, attributes, status, createdByUserId, createdBy, reviewedByUserId, reviewedAt, rejectionReason, media, createdAt, updatedAt } = a;
   return {
     type: 'Feature',
     id,
@@ -38,6 +38,7 @@ function assetToFeature(asset) {
       reviewedByUserId,
       reviewedAt,
       rejectionReason: rejectionReason || null,
+      media: (media || []).map((m) => ({ id: m.id, url: m.url, mimeType: m.mimeType || null, sizeBytes: m.sizeBytes || null, createdAt: m.createdAt })),
       createdAt,
       updatedAt,
     },
