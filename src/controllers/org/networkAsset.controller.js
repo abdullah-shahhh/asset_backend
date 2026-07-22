@@ -9,6 +9,11 @@ const list = catchAsync(async (req, res) => {
   return response.success(res, { message: 'Success', data: featureCollection, meta: { pagination } });
 });
 
+const alarms = catchAsync(async (req, res) => {
+  const data = await assetService.listAlarms(req.db);
+  return response.success(res, { data });
+});
+
 const get = catchAsync(async (req, res) => {
   const asset = await assetService.getById(req.db, req.params.id);
   return response.success(res, { data: assetService.assetToFeature(asset) });
@@ -47,4 +52,4 @@ const importGeoJSON = catchAsync(async (req, res) => {
   });
 });
 
-module.exports = { list, get, create, update, remove, approve, reject, importGeoJSON };
+module.exports = { list, alarms, get, create, update, remove, approve, reject, importGeoJSON };

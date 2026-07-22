@@ -35,6 +35,12 @@ module.exports = (sequelize, DataTypes) => {
       reviewedByUserId: { type: DataTypes.UUID, allowNull: true, field: 'reviewed_by_user_id' },
       reviewedAt: { type: DataTypes.DATE, allowNull: true, field: 'reviewed_at' },
       rejectionReason: { type: DataTypes.STRING, allowNull: true, field: 'rejection_reason' },
+      // Native equipment health — independent of `status` above (the
+      // review/approval workflow state). Only settable when the asset's
+      // symbology is flagged is_equipment (see networkAsset.service.js#update).
+      operationalStatus: { type: DataTypes.STRING(20), allowNull: true, field: 'operational_status' },
+      // IPAM-lite: only meaningful when symbology.isEquipment (same gate as operationalStatus).
+      ipAddress: { type: DataTypes.STRING(45), allowNull: true, field: 'ip_address' },
     },
     {
       tableName: 'network_assets',
@@ -57,6 +63,8 @@ module.exports = (sequelize, DataTypes) => {
     NetworkAsset.belongsTo(models.User, { foreignKey: 'createdByUserId', as: 'createdBy' });
     NetworkAsset.belongsTo(models.User, { foreignKey: 'reviewedByUserId', as: 'reviewedBy' });
     NetworkAsset.hasMany(models.MediaAttachment, { foreignKey: 'networkAssetId', as: 'media' });
+    NetworkAsset.hasMany(models.NetworkConnection, { foreignKey: 'fromAssetId', as: 'outgoingConnections' });
+    NetworkAsset.hasMany(models.NetworkConnection, { foreignKey: 'toAssetId', as: 'incomingConnections' });
   };
 
   return NetworkAsset;

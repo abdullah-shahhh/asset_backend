@@ -13,6 +13,8 @@ router.get('/', requirePermission(ORG_PERMISSIONS.ASSETS_VIEW), validate(v.listQ
 // This is the endpoint the future mobile app posts survey data into.
 router.post('/', requirePermission(ORG_PERMISSIONS.ASSETS_CREATE), validate(v.create), ctrl.create);
 router.post('/import', requirePermission(ORG_PERMISSIONS.ASSETS_CREATE), validate(v.importGeoJSON), ctrl.importGeoJSON);
+// Registered before /:id so Express doesn't treat "alarms" as an id param.
+router.get('/alarms', requirePermission(ORG_PERMISSIONS.ASSETS_VIEW), ctrl.alarms);
 router.get('/:id', requirePermission(ORG_PERMISSIONS.ASSETS_VIEW), validate(v.idParam), ctrl.get);
 router.patch('/:id', requirePermission(ORG_PERMISSIONS.ASSETS_UPDATE), validate(v.update), ctrl.update);
 router.delete('/:id', requirePermission(ORG_PERMISSIONS.ASSETS_DELETE), validate(v.idParam), ctrl.remove);

@@ -1,9 +1,10 @@
 'use strict';
 
+const { Op } = require('sequelize');
 const { getPaginationParams, buildPaginationMeta } = require('../../helpers/pagination.helper');
 const { assetsToFeatureCollection, assetToFeature } = require('../../helpers/geojson.helper');
 const auditHelper = require('../../helpers/audit.helper');
-const { NETWORK_ASSET_STATUS, AUDIT_ACTIONS, AUTH_REALM } = require('../../config/constants');
+const { NETWORK_ASSET_STATUS, OPERATIONAL_STATUS, AUDIT_ACTIONS, AUTH_REALM } = require('../../config/constants');
 const ApiError = require('../../utils/ApiError');
 
 const SYMBOLOGY_INCLUDE = { association: 'symbology' };
@@ -42,6 +43,7 @@ async function list(models, query) {
   if (query.status) where.status = query.status;
   if (query.symbologyId) where.symbologyId = query.symbologyId;
   if (query.assetType) where.assetType = query.assetType;
+  if (query.ipAddress) where.ipAddress = { [Op.iLike]: `%${query.ipAddress}%` };
 
   const { page, limit, offset, order } = getPaginationParams(query);
   const { count, rows } = await models.NetworkAsset.findAndCountAll({
@@ -54,6 +56,27 @@ async function list(models, query) {
   return {
     featureCollection: assetsToFeatureCollection(rows),
     pagination: buildPaginationMeta(count, page, limit),
+  };
+}
+
+/** Cross-project "is anything unhealthy right now" view — degraded/offline
+ * equipment plus actively-faulted cables (the demo fault-simulation flag). */
+async function listAlarms(models) {
+  const [equipment, faults] = await Promise.all([
+    models.NetworkAsset.findAll({
+      where: { operationalStatus: { [Op.in]: [OPERATIONAL_STATUS.DEGRADED, OPERATIONAL_STATUS.OFFLINE] } },
+      include: REVIEW_INCLUDES,
+      order: [['updatedAt', 'DESC']],
+    }),
+    models.NetworkAsset.findAll({
+      where: { attributes: { faultActive: true } },
+      include: REVIEW_INCLUDES,
+      order: [['updatedAt', 'DESC']],
+    }),
+  ]);
+  return {
+    equipment: equipment.map(assetToFeature),
+    faults: faults.map(assetToFeature),
   };
 }
 
@@ -141,7 +164,7 @@ async function importFeatureCollection(models, organization, user, { projectId, 
   return { total: features.length, created, failed: errors.length, errors };
 }
 
-async function update(models, id, { geometry, attributes }) {
+async function update(models, id, { geometry, attributes, operationalStatus, ipAddress }) {
   const asset = await getById(models, id);
   const patch = {};
   if (geometry) {
@@ -153,6 +176,14 @@ async function update(models, id, { geometry, attributes }) {
   }
   if (attributes) {
     patch.attributes = { ...asset.attributes, ...attributes };
+  }
+  if (operationalStatus !== undefined) {
+    if (!asset.symbology?.isEquipment) throw ApiError.badRequest('This asset type does not track operational status');
+    patch.operationalStatus = operationalStatus;
+  }
+  if (ipAddress !== undefined) {
+    if (!asset.symbology?.isEquipment) throw ApiError.badRequest('This asset type does not track an IP address');
+    patch.ipAddress = ipAddress || null;
   }
   await asset.update(patch);
   return getById(models, id);
@@ -205,4 +236,4 @@ async function reject(models, id, reviewer, reason, { req } = {}) {
   return getById(models, id);
 }
 
-module.exports = { list, getById, create, update, remove, approve, reject, importFeatureCollection, assetToFeature };
+module.exports = { list, listAlarms, getById, create, update, remove, approve, reject, importFeatureCollection, assetToFeature };

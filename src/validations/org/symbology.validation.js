@@ -14,6 +14,7 @@ const create = {
     geometryType: Joi.string().valid(...Object.values(GEOMETRY_TYPE)).required(),
     color: hexColor.required(),
     icon,
+    isEquipment: Joi.boolean(),
   }),
 };
 
@@ -23,6 +24,7 @@ const update = {
     name: Joi.string().trim().min(1).max(100),
     color: hexColor,
     icon,
+    isEquipment: Joi.boolean(),
   }).min(1),
 };
 

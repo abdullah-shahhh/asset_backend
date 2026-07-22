@@ -27,6 +27,9 @@ module.exports = (sequelize, DataTypes) => {
       // A custom-uploaded icon image takes precedence over `icon` when set;
       // the two are kept mutually exclusive at the service layer.
       iconUrl: { type: DataTypes.STRING, allowNull: true, field: 'icon_url' },
+      // Org-defined: does this symbology represent real equipment that can be
+      // online/offline? Only meaningful for Point symbologies.
+      isEquipment: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'is_equipment' },
     },
     {
       tableName: 'symbologies',

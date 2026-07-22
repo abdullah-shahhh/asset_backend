@@ -52,6 +52,31 @@ const NETWORK_ASSET_STATUS = Object.freeze({
   REJECTED: 'rejected',
 });
 
+// Native equipment health status — independent of NETWORK_ASSET_STATUS above
+// (which is the review/approval workflow state). Only meaningful on assets
+// whose symbology is flagged is_equipment.
+const OPERATIONAL_STATUS = Object.freeze({
+  ONLINE: 'online',
+  DEGRADED: 'degraded',
+  OFFLINE: 'offline',
+  MAINTENANCE: 'maintenance',
+});
+
+// Salesforce-lite: customer support tickets.
+const TICKET_STATUS = Object.freeze({
+  OPEN: 'open',
+  IN_PROGRESS: 'in_progress',
+  RESOLVED: 'resolved',
+  CLOSED: 'closed',
+});
+
+const TICKET_PRIORITY = Object.freeze({
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  URGENT: 'urgent',
+});
+
 const AUDIT_ACTIONS = Object.freeze({
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',
@@ -138,6 +163,10 @@ const ORG_PERMISSIONS = Object.freeze({
   FIELD_TEAM_VIEW: 'field_team.view',
   FIELD_TEAM_MANAGE: 'field_team.manage', // approve/reject/suspend/delete surveyors, regenerate join code
   BRANDING_MANAGE: 'branding.manage',
+  CUSTOMERS_VIEW: 'customers.view',
+  CUSTOMERS_MANAGE: 'customers.manage',
+  TICKETS_VIEW: 'tickets.view',
+  TICKETS_MANAGE: 'tickets.manage',
 });
 
 const ORG_PERMISSION_CATALOG = Object.freeze(
@@ -177,6 +206,9 @@ module.exports = {
   PROJECT_STATUS,
   GEOMETRY_TYPE,
   NETWORK_ASSET_STATUS,
+  OPERATIONAL_STATUS,
+  TICKET_STATUS,
+  TICKET_PRIORITY,
   AUDIT_ACTIONS,
   PERMISSIONS,
   PERMISSION_CATALOG,

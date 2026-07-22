@@ -12,12 +12,15 @@ const rolesRoutes = require('./roles.routes');
 const usersRoutes = require('./users.routes');
 const projectsRoutes = require('./projects.routes');
 const networkAssetsRoutes = require('./network-assets.routes');
+const networkConnectionsRoutes = require('./network-connections.routes');
 const surveyTemplatesRoutes = require('./survey-templates.routes');
 const symbologiesRoutes = require('./symbologies.routes');
 const mediaRoutes = require('./media.routes');
 const exportRoutes = require('./export.routes');
 const fieldTeamRoutes = require('./field-team.routes');
 const brandingRoutes = require('./branding.routes');
+const customersRoutes = require('./customers.routes');
+const ticketsRoutes = require('./tickets.routes');
 
 const router = express.Router();
 
@@ -36,11 +39,14 @@ router.use('/roles', rolesRoutes);
 router.use('/users', usersRoutes);
 router.use('/projects', projectsRoutes);
 router.use('/network-assets', networkAssetsRoutes);
+router.use('/network-connections', networkConnectionsRoutes);
 router.use('/survey-templates', surveyTemplatesRoutes);
 router.use('/symbologies', symbologiesRoutes);
 router.use('/media', mediaRoutes);
 router.use('/export', exportRoutes);
 router.use('/field-team', fieldTeamRoutes);
 router.use('/branding', brandingRoutes);
+router.use('/customers', customersRoutes);
+router.use('/tickets', ticketsRoutes);
 
 module.exports = router;

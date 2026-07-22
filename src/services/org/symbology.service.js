@@ -35,12 +35,12 @@ async function getById(models, id) {
   return symbology;
 }
 
-async function create(models, { name, geometryType, color, icon }) {
+async function create(models, { name, geometryType, color, icon, isEquipment }) {
   const key = await uniqueKey(models, slugify(name));
-  return models.Symbology.create({ name, key, geometryType, color, icon: icon || null });
+  return models.Symbology.create({ name, key, geometryType, color, icon: icon || null, isEquipment: !!isEquipment });
 }
 
-async function update(models, id, { name, color, icon }) {
+async function update(models, id, { name, color, icon, isEquipment }) {
   const symbology = await getById(models, id);
   await symbology.update({
     ...(name != null && { name }),
@@ -48,6 +48,7 @@ async function update(models, id, { name, color, icon }) {
     // Picking a curated icon replaces any custom-uploaded one — the two are
     // mutually exclusive so rendering never has to guess which one "wins".
     ...(icon !== undefined && { icon: icon || null, iconUrl: null }),
+    ...(isEquipment != null && { isEquipment }),
   });
   return symbology;
 }

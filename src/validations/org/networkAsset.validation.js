@@ -1,7 +1,7 @@
 'use strict';
 
 const { Joi } = require('../../middleware/validate.middleware');
-const { NETWORK_ASSET_STATUS, GEOMETRY_TYPE } = require('../../config/constants');
+const { NETWORK_ASSET_STATUS, GEOMETRY_TYPE, OPERATIONAL_STATUS } = require('../../config/constants');
 
 const point = Joi.array().items(Joi.number()).length(2);
 const lineString = Joi.array().items(point).min(2);
@@ -31,6 +31,8 @@ const update = {
   body: Joi.object({
     geometry,
     attributes: Joi.object().unknown(true),
+    operationalStatus: Joi.string().valid(...Object.values(OPERATIONAL_STATUS)).allow(null),
+    ipAddress: Joi.string().ip({ version: ['ipv4', 'ipv6'] }).allow(null, ''),
   }).min(1),
 };
 
@@ -72,6 +74,7 @@ const listQuery = {
     symbologyId: Joi.string().uuid(),
     assetType: Joi.string(),
     status: Joi.string().valid(...Object.values(NETWORK_ASSET_STATUS)),
+    ipAddress: Joi.string().trim().min(1),
   }),
 };
 
