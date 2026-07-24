@@ -10,7 +10,7 @@
 /** Turn a NetworkAsset instance (or plain object) into a GeoJSON Feature. */
 function assetToFeature(asset) {
   const a = typeof asset.toJSON === 'function' ? asset.toJSON() : asset;
-  const { geom, id, projectId, project, symbologyId, symbology, assetType, geometryType, attributes, status, operationalStatus, ipAddress, createdByUserId, createdBy, reviewedByUserId, reviewedAt, rejectionReason, media, createdAt, updatedAt } = a;
+  const { geom, id, projectId, project, symbologyId, symbology, assetType, geometryType, attributes, status, operationalStatus, ipAddress, createdByUserId, createdBy, reviewedByUserId, reviewedBy, reviewedAt, rejectionReason, media, createdAt, updatedAt } = a;
   return {
     type: 'Feature',
     id,
@@ -21,7 +21,18 @@ function assetToFeature(asset) {
       project: project ? { id: project.id, name: project.name } : null,
       symbologyId,
       symbology: symbology
-        ? { id: symbology.id, name: symbology.name, key: symbology.key, color: symbology.color, icon: symbology.icon || null, iconUrl: symbology.iconUrl || null, isEquipment: !!symbology.isEquipment, isCable: !!symbology.isCable, fields: symbology.fields || [] }
+        ? {
+            id: symbology.id,
+            name: symbology.name,
+            key: symbology.key,
+            color: symbology.color,
+            icon: symbology.icon || null,
+            iconUrl: symbology.iconUrl || null,
+            isEquipment: !!symbology.isEquipment,
+            isCable: !!symbology.isCable,
+            isRfSite: !!symbology.isRfSite,
+            fields: symbology.fields || [],
+          }
         : null,
       // Denormalized for map styling — flat properties are safe to reference
       // from MapLibre style expressions; a nested object is not (`['get',
@@ -38,6 +49,7 @@ function assetToFeature(asset) {
       createdByUserId,
       createdBy: createdBy ? { id: createdBy.id, name: [createdBy.firstName, createdBy.lastName].filter(Boolean).join(' '), email: createdBy.email } : null,
       reviewedByUserId,
+      reviewedBy: reviewedBy ? { id: reviewedBy.id, name: [reviewedBy.firstName, reviewedBy.lastName].filter(Boolean).join(' '), email: reviewedBy.email } : null,
       reviewedAt,
       rejectionReason: rejectionReason || null,
       media: (media || []).map((m) => ({ id: m.id, url: m.url, mimeType: m.mimeType || null, sizeBytes: m.sizeBytes || null, createdAt: m.createdAt })),

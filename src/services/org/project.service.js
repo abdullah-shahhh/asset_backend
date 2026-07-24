@@ -52,7 +52,7 @@ async function remove(models, id) {
  * assets into it. */
 async function listSurveyors(models, projectId) {
   const project = await models.Project.findByPk(projectId, {
-    include: [{ association: 'surveyors', through: { attributes: [] }, attributes: ['id', 'firstName', 'lastName', 'email'] }],
+    include: [{ association: 'surveyors', through: { attributes: [] }, attributes: ['id', 'firstName', 'lastName', 'email', 'phone', 'status'] }],
   });
   if (!project) throw ApiError.notFound('Project not found');
   return project.surveyors;
@@ -72,4 +72,78 @@ async function setSurveyors(models, projectId, surveyorIds) {
   return listSurveyors(models, projectId);
 }
 
-module.exports = { list, getById, create, update, remove, listSurveyors, setSurveyors };
+/**
+ * Project-level rollups for the dashboard — everything here is derived from
+ * real rows (asset/strand/port counts, review status, PostGIS length), never
+ * invented. Some things a "stats dashboard" traditionally shows (maintenance
+ * due-dates, field-sync status) have no underlying data source yet in this
+ * system and are deliberately left out rather than faked.
+ */
+async function getStats(models, projectId) {
+  const project = await getById(models, projectId);
+
+  const assets = await models.NetworkAsset.findAll({
+    where: { projectId },
+    attributes: ['id', 'geometryType', 'status', 'operationalStatus', 'attributes'],
+    include: [{ model: models.Symbology, as: 'symbology', attributes: ['id', 'name', 'isCable', 'isEquipment'] }],
+  });
+
+  const byType = new Map();
+  let pending = 0;
+  let approved = 0;
+  let rejected = 0;
+  let damaged = 0;
+  let maintenance = 0;
+  let activeFaults = 0;
+  for (const a of assets) {
+    const label = a.symbology?.name || a.geometryType;
+    byType.set(label, (byType.get(label) || 0) + 1);
+    if (a.status === 'pending') pending += 1;
+    else if (a.status === 'approved') approved += 1;
+    else if (a.status === 'rejected') rejected += 1;
+    if (a.operationalStatus === 'maintenance') maintenance += 1;
+    const condition = a.attributes?.condition;
+    if (condition === 'Damaged' || condition === 'Poor') damaged += 1;
+    if (a.attributes?.faultActive) activeFaults += 1;
+  }
+
+  const [lengthRow] = await models.sequelize.query(
+    `SELECT COALESCE(SUM(ST_Length(geography(na.geom))), 0) AS meters
+     FROM network_assets na
+     JOIN symbologies s ON s.id = na.symbology_id
+     WHERE na.project_id = :projectId AND na.geometry_type = 'LineString' AND s.is_cable = true AND na.deleted_at IS NULL`,
+    { replacements: { projectId }, type: models.sequelize.QueryTypes.SELECT }
+  );
+  const totalOfcLengthFeet = Math.round(Number(lengthRow?.meters || 0) * 3.28084);
+
+  const strands = await models.FiberStrand.findAll({
+    attributes: ['id', 'status'],
+    include: [{ model: models.NetworkAsset, as: 'cable', attributes: [], where: { projectId }, required: true }],
+  });
+  const inServiceStrands = strands.filter((s) => s.status === 'in_service').length;
+
+  const ports = await models.EquipmentPort.findAll({
+    attributes: ['id', 'status'],
+    include: [{ model: models.NetworkAsset, as: 'equipment', attributes: [], where: { projectId }, required: true }],
+  });
+  const connectedPorts = ports.filter((p) => p.status === 'connected').length;
+
+  const surveyors = await listSurveyors(models, projectId);
+
+  return {
+    project: { id: project.id, name: project.name },
+    totalAssets: assets.length,
+    byType: Array.from(byType.entries()).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
+    statusCounts: { pending, approved, rejected },
+    surveyProgressPct: assets.length ? Math.round((approved / assets.length) * 100) : 0,
+    damagedAssets: damaged,
+    assetsInMaintenance: maintenance,
+    activeFaults,
+    totalOfcLengthFeet,
+    strands: { total: strands.length, inService: inServiceStrands, utilizationPct: strands.length ? Math.round((inServiceStrands / strands.length) * 100) : 0 },
+    ports: { total: ports.length, connected: connectedPorts },
+    activeSurveyors: surveyors.length,
+  };
+}
+
+module.exports = { list, getById, create, update, remove, listSurveyors, setSurveyors, getStats };

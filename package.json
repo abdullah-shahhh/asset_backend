@@ -15,7 +15,11 @@
     "seed:main": "node scripts/seed-main.js",
     "seed:demo-org": "node scripts/seed-demo-org.js",
     "seed:ofc-demo": "node scripts/seed-ofc-demo.js",
-    "setup": "npm run migrate:main && npm run seed:main && npm run seed:demo-org && npm run migrate:tenants && npm run seed:ofc-demo"
+    "seed:ofc-network-demo": "node scripts/seed-ofc-network-demo.js",
+    "seed:rf-coverage-demo": "node scripts/seed-rf-coverage-demo.js",
+    "seed:detailed-attributes-demo": "node scripts/add-detailed-attributes-demo.js",
+    "seed:ip-addresses-demo": "node scripts/assign-ip-addresses-demo.js",
+    "setup": "npm run migrate:main && npm run seed:main && npm run seed:demo-org && npm run migrate:tenants && npm run seed:ofc-demo && npm run seed:ofc-network-demo && npm run seed:rf-coverage-demo && npm run seed:detailed-attributes-demo && npm run seed:ip-addresses-demo"
   },
   "keywords": [
     "express",

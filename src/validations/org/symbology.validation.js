@@ -26,6 +26,7 @@ const create = {
     icon,
     isEquipment: Joi.boolean(),
     isCable: Joi.boolean(),
+    isRfSite: Joi.boolean(),
     fields: Joi.array().items(field),
   }),
 };
@@ -38,6 +39,7 @@ const update = {
     icon,
     isEquipment: Joi.boolean(),
     isCable: Joi.boolean(),
+    isRfSite: Joi.boolean(),
     fields: Joi.array().items(field),
   }).min(1),
 };

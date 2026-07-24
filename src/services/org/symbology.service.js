@@ -35,12 +35,22 @@ async function getById(models, id) {
   return symbology;
 }
 
-async function create(models, { name, geometryType, color, icon, isEquipment, isCable, fields }) {
+async function create(models, { name, geometryType, color, icon, isEquipment, isCable, isRfSite, fields }) {
   const key = await uniqueKey(models, slugify(name));
-  return models.Symbology.create({ name, key, geometryType, color, icon: icon || null, isEquipment: !!isEquipment, isCable: !!isCable, fields: fields || [] });
+  return models.Symbology.create({
+    name,
+    key,
+    geometryType,
+    color,
+    icon: icon || null,
+    isEquipment: !!isEquipment,
+    isCable: !!isCable,
+    isRfSite: !!isRfSite,
+    fields: fields || [],
+  });
 }
 
-async function update(models, id, { name, color, icon, isEquipment, isCable, fields }) {
+async function update(models, id, { name, color, icon, isEquipment, isCable, isRfSite, fields }) {
   const symbology = await getById(models, id);
   await symbology.update({
     ...(name != null && { name }),
@@ -50,6 +60,7 @@ async function update(models, id, { name, color, icon, isEquipment, isCable, fie
     ...(icon !== undefined && { icon: icon || null, iconUrl: null }),
     ...(isEquipment != null && { isEquipment }),
     ...(isCable != null && { isCable }),
+    ...(isRfSite != null && { isRfSite }),
     ...(fields !== undefined && { fields }),
   });
   return symbology;

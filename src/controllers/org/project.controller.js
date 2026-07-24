@@ -39,4 +39,9 @@ const setSurveyors = catchAsync(async (req, res) => {
   return response.success(res, { message: 'Project surveyors updated', data: surveyors });
 });
 
-module.exports = { list, get, create, update, remove, listSurveyors, setSurveyors };
+const getStats = catchAsync(async (req, res) => {
+  const stats = await projectService.getStats(req.db, req.params.id);
+  return response.success(res, { data: stats });
+});
+
+module.exports = { list, get, create, update, remove, listSurveyors, setSurveyors, getStats };

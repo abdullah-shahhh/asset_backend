@@ -33,6 +33,10 @@ module.exports = (sequelize, DataTypes) => {
       // Org-defined: does this symbology represent a fiber cable that carries
       // strands? Only meaningful for LineString symbologies.
       isCable: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'is_cable' },
+      // Org-defined: does this symbology represent a radio transmitter (tower,
+      // rooftop site) whose coverage can be estimated? Only meaningful for
+      // Point symbologies. Gates the RF coverage panel on the map.
+      isRfSite: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'is_rf_site' },
       // Custom attribute schema for assets of this type: [{ key, label, type,
       // required, options? }], same shape as Project.templateFields. Not
       // geometry-gated — any asset type can carry its own data fields. Takes

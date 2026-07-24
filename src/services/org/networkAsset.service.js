@@ -9,9 +9,10 @@ const ApiError = require('../../utils/ApiError');
 
 const SYMBOLOGY_INCLUDE = { association: 'symbology' };
 const CREATED_BY_INCLUDE = { association: 'createdBy', attributes: ['id', 'firstName', 'lastName', 'email'] };
+const REVIEWED_BY_INCLUDE = { association: 'reviewedBy', attributes: ['id', 'firstName', 'lastName', 'email'] };
 const PROJECT_INCLUDE = { association: 'project', attributes: ['id', 'name'] };
 const MEDIA_INCLUDE = { association: 'media' };
-const REVIEW_INCLUDES = [SYMBOLOGY_INCLUDE, CREATED_BY_INCLUDE, PROJECT_INCLUDE, MEDIA_INCLUDE];
+const REVIEW_INCLUDES = [SYMBOLOGY_INCLUDE, CREATED_BY_INCLUDE, REVIEWED_BY_INCLUDE, PROJECT_INCLUDE, MEDIA_INCLUDE];
 
 /**
  * Resolve a symbology and confirm it has been assigned to the given project —
