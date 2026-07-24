@@ -35,12 +35,12 @@ async function getById(models, id) {
   return symbology;
 }
 
-async function create(models, { name, geometryType, color, icon, isEquipment }) {
+async function create(models, { name, geometryType, color, icon, isEquipment, isCable, fields }) {
   const key = await uniqueKey(models, slugify(name));
-  return models.Symbology.create({ name, key, geometryType, color, icon: icon || null, isEquipment: !!isEquipment });
+  return models.Symbology.create({ name, key, geometryType, color, icon: icon || null, isEquipment: !!isEquipment, isCable: !!isCable, fields: fields || [] });
 }
 
-async function update(models, id, { name, color, icon, isEquipment }) {
+async function update(models, id, { name, color, icon, isEquipment, isCable, fields }) {
   const symbology = await getById(models, id);
   await symbology.update({
     ...(name != null && { name }),
@@ -49,6 +49,8 @@ async function update(models, id, { name, color, icon, isEquipment }) {
     // mutually exclusive so rendering never has to guess which one "wins".
     ...(icon !== undefined && { icon: icon || null, iconUrl: null }),
     ...(isEquipment != null && { isEquipment }),
+    ...(isCable != null && { isCable }),
+    ...(fields !== undefined && { fields }),
   });
   return symbology;
 }

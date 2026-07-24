@@ -24,6 +24,8 @@ module.exports = (sequelize, DataTypes) => {
   Customer.associate = (models) => {
     Customer.belongsTo(models.NetworkAsset, { foreignKey: 'networkAssetId', as: 'asset' });
     Customer.hasMany(models.Ticket, { foreignKey: 'customerId', as: 'tickets' });
+    // Fiber strands directly attributed to this customer (e.g. their drop strand).
+    Customer.hasMany(models.FiberStrand, { foreignKey: 'assignedCustomerId', as: 'assignedStrands' });
   };
 
   return Customer;

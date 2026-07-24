@@ -8,6 +8,16 @@ const hexColor = Joi.string().pattern(/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/);
 // safe identifier, not against a server-side whitelist (purely cosmetic).
 const icon = Joi.string().trim().max(40).pattern(/^[A-Za-z0-9]+$/).allow(null, '');
 
+// Mirrors project.validation.js's templateField exactly — same shape, now
+// also settable per asset type (see symbology.model.js#fields doc comment).
+const field = Joi.object({
+  key: Joi.string().trim().min(1).required(),
+  label: Joi.string().trim().min(1).required(),
+  type: Joi.string().valid('text', 'number', 'select', 'boolean', 'date', 'textarea').required(),
+  required: Joi.boolean(),
+  options: Joi.array().items(Joi.string()),
+});
+
 const create = {
   body: Joi.object({
     name: Joi.string().trim().min(1).max(100).required(),
@@ -15,6 +25,8 @@ const create = {
     color: hexColor.required(),
     icon,
     isEquipment: Joi.boolean(),
+    isCable: Joi.boolean(),
+    fields: Joi.array().items(field),
   }),
 };
 
@@ -25,6 +37,8 @@ const update = {
     color: hexColor,
     icon,
     isEquipment: Joi.boolean(),
+    isCable: Joi.boolean(),
+    fields: Joi.array().items(field),
   }).min(1),
 };
 

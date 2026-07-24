@@ -2,6 +2,8 @@
 
 const catchAsync = require('../../utils/catchAsync');
 const assetService = require('../../services/org/networkAsset.service');
+const strandService = require('../../services/org/fiberStrand.service');
+const portService = require('../../services/org/equipmentPort.service');
 const response = require('../../helpers/response.helper');
 
 const list = catchAsync(async (req, res) => {
@@ -52,4 +54,50 @@ const importGeoJSON = catchAsync(async (req, res) => {
   });
 });
 
-module.exports = { list, alarms, get, create, update, remove, approve, reject, importGeoJSON };
+const generateStrands = catchAsync(async (req, res) => {
+  const strands = await strandService.generate(req.db, req.params.id, req.body.strandCount);
+  return response.created(res, { message: `Generated ${strands.length} strand(s)`, data: strands });
+});
+
+const listStrands = catchAsync(async (req, res) => {
+  const strands = await strandService.listForAsset(req.db, req.params.id);
+  return response.success(res, { data: strands });
+});
+
+const updateStrand = catchAsync(async (req, res) => {
+  const strand = await strandService.update(req.db, req.params.id, req.params.strandId, req.body);
+  return response.success(res, { message: 'Strand updated', data: strand });
+});
+
+const generatePorts = catchAsync(async (req, res) => {
+  const ports = await portService.generate(req.db, req.params.id, req.body.portCount);
+  return response.created(res, { message: `Generated ${ports.length} port(s)`, data: ports });
+});
+
+const listPorts = catchAsync(async (req, res) => {
+  const ports = await portService.listForAsset(req.db, req.params.id);
+  return response.success(res, { data: ports });
+});
+
+const updatePort = catchAsync(async (req, res) => {
+  const port = await portService.update(req.db, req.params.id, req.params.portId, req.body);
+  return response.success(res, { message: 'Port updated', data: port });
+});
+
+module.exports = {
+  list,
+  alarms,
+  get,
+  create,
+  update,
+  remove,
+  approve,
+  reject,
+  importGeoJSON,
+  generateStrands,
+  listStrands,
+  updateStrand,
+  generatePorts,
+  listPorts,
+  updatePort,
+};

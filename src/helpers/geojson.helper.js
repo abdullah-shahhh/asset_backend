@@ -21,7 +21,7 @@ function assetToFeature(asset) {
       project: project ? { id: project.id, name: project.name } : null,
       symbologyId,
       symbology: symbology
-        ? { id: symbology.id, name: symbology.name, key: symbology.key, color: symbology.color, icon: symbology.icon || null, iconUrl: symbology.iconUrl || null, isEquipment: !!symbology.isEquipment }
+        ? { id: symbology.id, name: symbology.name, key: symbology.key, color: symbology.color, icon: symbology.icon || null, iconUrl: symbology.iconUrl || null, isEquipment: !!symbology.isEquipment, isCable: !!symbology.isCable, fields: symbology.fields || [] }
         : null,
       // Denormalized for map styling — flat properties are safe to reference
       // from MapLibre style expressions; a nested object is not (`['get',

@@ -65,6 +65,9 @@ module.exports = (sequelize, DataTypes) => {
     NetworkAsset.hasMany(models.MediaAttachment, { foreignKey: 'networkAssetId', as: 'media' });
     NetworkAsset.hasMany(models.NetworkConnection, { foreignKey: 'fromAssetId', as: 'outgoingConnections' });
     NetworkAsset.hasMany(models.NetworkConnection, { foreignKey: 'toAssetId', as: 'incomingConnections' });
+    // Only meaningful when symbology.isCable / symbology.isEquipment respectively.
+    NetworkAsset.hasMany(models.FiberStrand, { foreignKey: 'networkAssetId', as: 'strands' });
+    NetworkAsset.hasMany(models.EquipmentPort, { foreignKey: 'networkAssetId', as: 'ports' });
   };
 
   return NetworkAsset;

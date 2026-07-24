@@ -77,6 +77,34 @@ const TICKET_PRIORITY = Object.freeze({
   URGENT: 'urgent',
 });
 
+// Fiber strand lifecycle — set manually by a manager, never derived (no OTDR/
+// hardware feed exists to infer this automatically, same limitation as
+// OPERATIONAL_STATUS above).
+const STRAND_STATUS = Object.freeze({
+  AVAILABLE: 'available',
+  RESERVED: 'reserved',
+  IN_SERVICE: 'in_service',
+  DARK: 'dark',
+  FAULTY: 'faulty',
+  UNDER_TEST: 'under_test',
+  UNDER_REPAIR: 'under_repair',
+  RETIRED: 'retired',
+});
+
+// Where in the network a strand sits — optional, manager-assigned.
+const STRAND_ROLE = Object.freeze({
+  FEEDER: 'feeder',
+  DISTRIBUTION: 'distribution',
+  DROP: 'drop',
+});
+
+// Equipment port occupancy. 'connected' is set automatically when a splice
+// references the port (see fiberSplice.service.js), otherwise editable by hand.
+const PORT_STATUS = Object.freeze({
+  FREE: 'free',
+  CONNECTED: 'connected',
+});
+
 const AUDIT_ACTIONS = Object.freeze({
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',
@@ -209,6 +237,9 @@ module.exports = {
   OPERATIONAL_STATUS,
   TICKET_STATUS,
   TICKET_PRIORITY,
+  STRAND_STATUS,
+  STRAND_ROLE,
+  PORT_STATUS,
   AUDIT_ACTIONS,
   PERMISSIONS,
   PERMISSION_CATALOG,

@@ -30,6 +30,15 @@ module.exports = (sequelize, DataTypes) => {
       // Org-defined: does this symbology represent real equipment that can be
       // online/offline? Only meaningful for Point symbologies.
       isEquipment: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'is_equipment' },
+      // Org-defined: does this symbology represent a fiber cable that carries
+      // strands? Only meaningful for LineString symbologies.
+      isCable: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'is_cable' },
+      // Custom attribute schema for assets of this type: [{ key, label, type,
+      // required, options? }], same shape as Project.templateFields. Not
+      // geometry-gated — any asset type can carry its own data fields. Takes
+      // precedence over the project's own templateFields when non-empty (see
+      // MapDashboardPage's effectiveFields).
+      fields: { type: DataTypes.JSONB, allowNull: false, defaultValue: [] },
     },
     {
       tableName: 'symbologies',
