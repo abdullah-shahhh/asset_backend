@@ -22,6 +22,7 @@ const fieldTeamRoutes = require('./field-team.routes');
 const brandingRoutes = require('./branding.routes');
 const customersRoutes = require('./customers.routes');
 const ticketsRoutes = require('./tickets.routes');
+const shareLinksRoutes = require('./share-links.routes');
 
 const router = express.Router();
 
@@ -50,5 +51,6 @@ router.use('/field-team', fieldTeamRoutes);
 router.use('/branding', brandingRoutes);
 router.use('/customers', customersRoutes);
 router.use('/tickets', ticketsRoutes);
+router.use('/share-links', shareLinksRoutes);
 
 module.exports = router;

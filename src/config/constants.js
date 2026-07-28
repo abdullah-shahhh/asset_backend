@@ -195,6 +195,7 @@ const ORG_PERMISSIONS = Object.freeze({
   CUSTOMERS_MANAGE: 'customers.manage',
   TICKETS_VIEW: 'tickets.view',
   TICKETS_MANAGE: 'tickets.manage',
+  SHARE_LINKS_MANAGE: 'share_links.manage', // generate/revoke temporary public map-view links
 });
 
 const ORG_PERMISSION_CATALOG = Object.freeze(
