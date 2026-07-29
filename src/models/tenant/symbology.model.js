@@ -37,6 +37,17 @@ module.exports = (sequelize, DataTypes) => {
       // rooftop site) whose coverage can be estimated? Only meaningful for
       // Point symbologies. Gates the RF coverage panel on the map.
       isRfSite: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false, field: 'is_rf_site' },
+      // Line rendering width in pixels — only meaningful for LineString (and
+      // Polygon outline) symbologies. Purely cosmetic, drives the map's paint
+      // expressions (see MapDashboardPage's symbologyLineWidth).
+      lineWidth: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 5, field: 'line_width' },
+      // Dash pattern as a MapLibre line-dasharray array, e.g. [4, 2] for
+      // dashed, [1, 2] for dotted, [] for solid. Only meaningful for
+      // LineString symbologies. MapLibre's line-dasharray isn't a
+      // data-driven expression, so the map groups lines into a small set of
+      // dash-pattern layers filtered on this value rather than reading it
+      // per-feature at paint time.
+      dashArray: { type: DataTypes.JSONB, allowNull: false, defaultValue: [], field: 'dash_array' },
       // Custom attribute schema for assets of this type: [{ key, label, type,
       // required, options? }], same shape as Project.templateFields. Not
       // geometry-gated — any asset type can carry its own data fields. Takes

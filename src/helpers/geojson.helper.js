@@ -31,6 +31,8 @@ function assetToFeature(asset) {
             isEquipment: !!symbology.isEquipment,
             isCable: !!symbology.isCable,
             isRfSite: !!symbology.isRfSite,
+            lineWidth: symbology.lineWidth ?? 5,
+            dashArray: symbology.dashArray || [],
             fields: symbology.fields || [],
           }
         : null,
@@ -40,6 +42,8 @@ function assetToFeature(asset) {
       color: symbology?.color || null,
       icon: symbology?.icon || null,
       iconUrl: symbology?.iconUrl || null,
+      lineWidth: symbology?.lineWidth ?? 5,
+      dashArray: symbology?.dashArray || [],
       assetType,
       geometryType,
       attributes: attributes || {},

@@ -18,6 +18,9 @@ const field = Joi.object({
   options: Joi.array().items(Joi.string()),
 });
 
+const lineWidth = Joi.number().min(0.5).max(20);
+const dashArray = Joi.array().items(Joi.number().positive()).max(6);
+
 const create = {
   body: Joi.object({
     name: Joi.string().trim().min(1).max(100).required(),
@@ -27,6 +30,8 @@ const create = {
     isEquipment: Joi.boolean(),
     isCable: Joi.boolean(),
     isRfSite: Joi.boolean(),
+    lineWidth,
+    dashArray,
     fields: Joi.array().items(field),
   }),
 };
@@ -40,6 +45,8 @@ const update = {
     isEquipment: Joi.boolean(),
     isCable: Joi.boolean(),
     isRfSite: Joi.boolean(),
+    lineWidth,
+    dashArray,
     fields: Joi.array().items(field),
   }).min(1),
 };

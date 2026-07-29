@@ -35,7 +35,7 @@ async function getById(models, id) {
   return symbology;
 }
 
-async function create(models, { name, geometryType, color, icon, isEquipment, isCable, isRfSite, fields }) {
+async function create(models, { name, geometryType, color, icon, isEquipment, isCable, isRfSite, lineWidth, dashArray, fields }) {
   const key = await uniqueKey(models, slugify(name));
   return models.Symbology.create({
     name,
@@ -46,11 +46,13 @@ async function create(models, { name, geometryType, color, icon, isEquipment, is
     isEquipment: !!isEquipment,
     isCable: !!isCable,
     isRfSite: !!isRfSite,
+    ...(lineWidth != null && { lineWidth }),
+    ...(dashArray !== undefined && { dashArray: dashArray || [] }),
     fields: fields || [],
   });
 }
 
-async function update(models, id, { name, color, icon, isEquipment, isCable, isRfSite, fields }) {
+async function update(models, id, { name, color, icon, isEquipment, isCable, isRfSite, lineWidth, dashArray, fields }) {
   const symbology = await getById(models, id);
   await symbology.update({
     ...(name != null && { name }),
@@ -61,6 +63,8 @@ async function update(models, id, { name, color, icon, isEquipment, isCable, isR
     ...(isEquipment != null && { isEquipment }),
     ...(isCable != null && { isCable }),
     ...(isRfSite != null && { isRfSite }),
+    ...(lineWidth != null && { lineWidth }),
+    ...(dashArray !== undefined && { dashArray: dashArray || [] }),
     ...(fields !== undefined && { fields }),
   });
   return symbology;
